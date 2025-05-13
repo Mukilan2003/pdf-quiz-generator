@@ -3,7 +3,7 @@ services:
     name: pdf-quiz-generator
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn run:app
+    startCommand: gunicorn wsgi:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
@@ -17,3 +17,5 @@ services:
         sync: false
       - key: BASE_URL
         sync: false
+      - key: RENDER
+        value: true
