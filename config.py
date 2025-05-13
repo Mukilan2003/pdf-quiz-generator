@@ -1,9 +1,11 @@
 import os
 import tempfile
+import sys
 from dotenv import load_dotenv
 
-# Load environment variables from .env file if it exists
-load_dotenv()
+# Load environment variables from .env file if it exists (only in development)
+if not os.environ.get('RENDER'):
+    load_dotenv()
 
 class Config:
     # Basic configuration
@@ -20,11 +22,15 @@ class Config:
     # Application base URL (for OAuth redirect)
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
 
-    # Detect environment
+    # Detect environment - Render sets this environment variable
     RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
 
     # Set upload folder based on environment
     if RENDER:
-        UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'uploads')
+        # On Render, use a subdirectory in the temp directory
+        UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'pdf_quiz_uploads')
+        print(f"Running on Render. Upload folder: {UPLOAD_FOLDER}", file=sys.stderr)
     else:
+        # In development, use a local directory
         UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app/static/uploads')
+        print(f"Running locally. Upload folder: {UPLOAD_FOLDER}", file=sys.stderr)

@@ -3,10 +3,16 @@ from flask_session import Session
 from config import Config
 import os
 import tempfile
+import logging
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info("Starting application...")
 
     # Use filesystem for session storage to handle large session data
     app.config['SESSION_TYPE'] = 'filesystem'
@@ -23,15 +29,19 @@ def create_app(config_class=Config):
     app.register_blueprint(main)
     app.register_blueprint(auth, url_prefix='/auth')
 
-    # Setup function to create upload directory
+    # Create a function to set up the upload directory
+    @app.before_request
     def setup_upload_directory():
-        """Ensure upload directory exists."""
+        """Ensure upload directory exists before handling requests."""
         try:
-            os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+            upload_folder = current_app.config.get('UPLOAD_FOLDER')
+            if upload_folder:
+                os.makedirs(upload_folder, exist_ok=True)
+                app.logger.info(f"Created upload directory: {upload_folder}")
         except Exception as e:
             app.logger.warning(f"Could not create upload directory: {e}")
 
-    # Register setup function to run before first request
-    app.before_request_funcs.setdefault(None, []).append(lambda: setup_upload_directory())
+    # Log that app creation is complete
+    app.logger.info("Application created successfully")
 
     return app
