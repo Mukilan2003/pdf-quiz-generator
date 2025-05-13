@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Quiz Generator - Summarize{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg animate__animated animate__fadeInUp">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Generate Summary</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <p class="mb-0"><strong>PDF Uploaded:</strong> {{ filename }}</p>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/summary-icon.svg') }}" alt="Summary Icon" class="img-fluid" style="max-width: 120px;">
+                </div>
+                
+                <h4 class="text-center mb-4">Generate a summary of the PDF content</h4>
+                
+                <p class="text-center">
+                    Our AI will analyze your PDF and create a concise summary highlighting the most important topics and key points.
+                </p>
+                
+                <div class="text-center mt-4">
+                    <button id="generate-summary-btn" class="btn btn-primary btn-lg">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="summary-spinner"></span>
+                        Generate Summary
+                    </button>
+                </div>
+                
+                <div id="summary-progress" class="progress mt-4 d-none">
+                    <div id="summary-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#generate-summary-btn').on('click', function() {
+            // Disable button and show spinner
+            $(this).prop('disabled', true);
+            $('#summary-spinner').removeClass('d-none');
+            $('#summary-progress').removeClass('d-none');
+            
+            // Simulate progress (since we don't have real-time progress)
+            let progress = 0;
+            const progressInterval = setInterval(function() {
+                progress += Math.random() * 15;
+                if (progress > 95) {
+                    progress = 95;
+                    clearInterval(progressInterval);
+                }
+                $('#summary-progress-bar').css('width', progress + '%');
+            }, 1000);
+            
+            // Send AJAX request
+            $.ajax({
+                url: "{{ url_for('main.generate_summary') }}",
+                type: "POST",
+                dataType: "json",
+                success: function(response) {
+                    clearInterval(progressInterval);
+                    $('#summary-progress-bar').css('width', '100%');
+                    
+                    // Redirect after a short delay
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 1000);
+                },
+                error: function(xhr, status, error) {
+                    clearInterval(progressInterval);
+                    $('#summary-progress').addClass('d-none');
+                    $('#summary-spinner').addClass('d-none');
+                    $('#generate-summary-btn').prop('disabled', false);
+                    
+                    alert("Error generating summary: " + error);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

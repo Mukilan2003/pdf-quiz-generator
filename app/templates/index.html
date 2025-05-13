@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Quiz Generator - Home{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg animate__animated animate__fadeInUp">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">PDF Quiz Generator</h2>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/pdf-icon.svg') }}" alt="PDF Icon" class="img-fluid" style="max-width: 150px;">
+                </div>
+
+                {% if session.get('user') %}
+                    <h4 class="text-center mb-4">Welcome, {{ session.get('user', {}).get('display_name') or session.get('user', {}).get('email', 'User') }}!</h4>
+
+                    <form action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                        <div class="mb-4">
+                            <div class="custom-file-upload">
+                                <input type="file" name="pdf_file" id="pdf-file" class="form-control" accept=".pdf" required>
+                                <label for="pdf-file" class="form-label mt-2">Choose a PDF file or drag it here</label>
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg" id="upload-btn">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="upload-spinner"></span>
+                                Upload PDF
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <h4 class="text-center mb-4">Sign in to get started</h4>
+
+                    <div class="text-center">
+                        <p class="mb-4">Create quizzes from your PDFs with our AI-powered tool.</p>
+                        <div class="d-grid gap-2 col-md-6 mx-auto">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login
+                            </a>
+                            <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-user-plus me-2"></i> Sign Up
+                            </a>
+                            <a href="{{ url_for('auth.google_login') }}" class="btn btn-danger btn-lg">
+                                <i class="fab fa-google me-2"></i> Sign in with Google
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <h5>PDF Summarization</h5>
+                        <p>Extract key points from your PDF</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <h5>Smart Quiz Generation</h5>
+                        <p>Create targeted MCQs</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h5>Performance Analysis</h5>
+                        <p>Get detailed results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#upload-form').on('submit', function() {
+            $('#upload-btn').prop('disabled', true);
+            $('#upload-spinner').removeClass('d-none');
+        });
+
+        // File upload visual feedback
+        $('#pdf-file').on('change', function() {
+            const fileName = $(this).val().split('\\').pop();
+            if (fileName) {
+                $(this).next('.form-label').text(fileName);
+            } else {
+                $(this).next('.form-label').text('Choose a PDF file or drag it here');
+            }
+        });
+    });
+</script>
+{% endblock %}

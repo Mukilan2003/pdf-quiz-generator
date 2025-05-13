@@ -1,0 +1,119 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.content-container {
+    min-height: 70vh;
+}
+
+/* Custom File Upload */
+.custom-file-upload {
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.custom-file-upload:hover {
+    border-color: #007bff;
+}
+
+.custom-file-upload input[type="file"] {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Feature Icons */
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #007bff;
+}
+
+/* Summary Container */
+.summary-container {
+    max-height: 500px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+/* Quiz Styles */
+.question-text {
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.option-item {
+    padding: 10px;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+.option-item:hover {
+    background-color: #f0f0f0;
+}
+
+.option-item .form-check-input {
+    margin-top: 0.3rem;
+}
+
+.option-item .form-check-label {
+    width: 100%;
+    cursor: pointer;
+    padding-left: 10px;
+}
+
+/* Results Page */
+.score-card {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.score-circle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    font-size: 2.5rem;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chart-container {
+    height: 300px;
+    margin-top: 20px;
+}
+
+/* Animations */
+.animate-fade {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        font-size: 2rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}

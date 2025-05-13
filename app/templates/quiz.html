@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Quiz Generator - Quiz{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg animate__animated animate__fadeInUp">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">Quiz</h2>
+                    <span class="badge bg-light text-primary">Question {{ question_number }} of {{ total_questions }}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="progress mb-4">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ (question_number / total_questions) * 100 }}%" 
+                         aria-valuenow="{{ question_number }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="{{ total_questions }}"></div>
+                </div>
+                
+                <div id="question-container" class="animate__animated animate__fadeIn">
+                    <h4 class="question-text mb-4">{{ question.question }}</h4>
+                    
+                    <form id="answer-form">
+                        <div class="options-container">
+                            {% for option in question.options %}
+                            <div class="form-check option-item mb-3 animate__animated animate__fadeInUp" style="animation-delay: {{ loop.index * 0.1 }}s">
+                                <input class="form-check-input" type="radio" name="answer" id="option{{ loop.index }}" value="{{ option }}">
+                                <label class="form-check-label" for="option{{ loop.index }}">
+                                    {{ option }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="explanation-container mt-4 d-none">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Explanation</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="explanation-text">{{ question.explanation }}</p>
+                                    <div class="correct-answer">
+                                        <strong>Correct answer:</strong> <span class="text-success">{{ question.correct_answer }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" id="submit-answer-btn" class="btn btn-primary btn-lg">
+                                Submit Answer
+                            </button>
+                            <button type="button" id="next-question-btn" class="btn btn-success btn-lg d-none">
+                                Next Question
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        const showExplanations = localStorage.getItem('showExplanations') !== 'false';
+        let selectedAnswer = null;
+        
+        // Handle form submission
+        $('#answer-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Get selected answer
+            selectedAnswer = $('input[name="answer"]:checked').val();
+            
+            if (!selectedAnswer) {
+                alert('Please select an answer');
+                return;
+            }
+            
+            // Disable form
+            $('input[name="answer"]').prop('disabled', true);
+            $('#submit-answer-btn').addClass('d-none');
+            
+            // Show explanation if enabled
+            if (showExplanations) {
+                $('.explanation-container').removeClass('d-none').addClass('animate__animated animate__fadeIn');
+                
+                // Highlight correct and selected answers
+                $('input[name="answer"]').each(function() {
+                    const label = $(this).next('label');
+                    const optionValue = $(this).val();
+                    
+                    if (optionValue === "{{ question.correct_answer }}") {
+                        label.addClass('text-success fw-bold');
+                    }
+                    
+                    if (optionValue === selectedAnswer && optionValue !== "{{ question.correct_answer }}") {
+                        label.addClass('text-danger');
+                    }
+                });
+                
+                $('#next-question-btn').removeClass('d-none');
+            } else {
+                // Submit answer directly
+                submitAnswer(selectedAnswer);
+            }
+        });
+        
+        // Handle next question button
+        $('#next-question-btn').on('click', function() {
+            submitAnswer(selectedAnswer);
+        });
+        
+        // Function to submit answer to server
+        function submitAnswer(answer) {
+            $.ajax({
+                url: "{{ url_for('main.submit_answer') }}",
+                type: "POST",
+                data: { answer: answer },
+                dataType: "json",
+                success: function(response) {
+                    // Animate transition to next question
+                    $('#question-container').removeClass('animate__fadeIn').addClass('animate__fadeOut');
+                    
+                    setTimeout(function() {
+                        window.location.href = response.redirect;
+                    }, 500);
+                },
+                error: function(xhr, status, error) {
+                    alert("Error submitting answer: " + error);
+                    
+                    // Re-enable form
+                    $('input[name="answer"]').prop('disabled', false);
+                    $('#submit-answer-btn').removeClass('d-none');
+                    $('#next-question-btn').addClass('d-none');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

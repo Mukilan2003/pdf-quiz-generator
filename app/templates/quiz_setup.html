@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}PDF Quiz Generator - Quiz Setup{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow-lg animate__animated animate__fadeInUp">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Quiz Setup</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">PDF Summary</h5>
+                            </div>
+                            <div class="card-body summary-container">
+                                {{ summary|safe }}
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{{ url_for('main.download_summary') }}" class="btn btn-outline-primary">
+                                    Download Summary PDF
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Configure Your Quiz</h5>
+                            </div>
+                            <div class="card-body">
+                                <form id="quiz-setup-form">
+                                    <div class="mb-3">
+                                        <label for="difficulty" class="form-label">Difficulty Level</label>
+                                        <select class="form-select" id="difficulty" name="difficulty">
+                                            <option value="easy">Easy</option>
+                                            <option value="medium" selected>Medium</option>
+                                            <option value="hard">Hard</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="topics" class="form-label">Focus Topics (Optional)</label>
+                                        <input type="text" class="form-control" id="topics" name="topics" 
+                                               placeholder="Enter topics separated by commas">
+                                        <div class="form-text">
+                                            Leave blank to cover all topics from the PDF, or specify topics to focus on.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Quiz Settings</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="show-explanations" checked>
+                                            <label class="form-check-label" for="show-explanations">
+                                                Show explanations after answering
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center mt-4">
+                                        <button type="submit" id="generate-quiz-btn" class="btn btn-primary btn-lg">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="quiz-spinner"></span>
+                                            Generate Quiz
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#quiz-setup-form').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Disable button and show spinner
+            $('#generate-quiz-btn').prop('disabled', true);
+            $('#quiz-spinner').removeClass('d-none');
+            
+            // Store settings in localStorage
+            localStorage.setItem('showExplanations', $('#show-explanations').is(':checked'));
+            
+            // Send AJAX request
+            $.ajax({
+                url: "{{ url_for('main.create_quiz') }}",
+                type: "POST",
+                data: $(this).serialize(),
+                dataType: "json",
+                success: function(response) {
+                    // Redirect to quiz page
+                    window.location.href = response.redirect;
+                },
+                error: function(xhr, status, error) {
+                    $('#quiz-spinner').addClass('d-none');
+                    $('#generate-quiz-btn').prop('disabled', false);
+                    
+                    alert("Error generating quiz: " + error);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
