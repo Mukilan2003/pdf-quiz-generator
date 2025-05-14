@@ -22,6 +22,14 @@ class Config:
     # Application base URL (for OAuth redirect)
     BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
 
+    # Remove quotes if present in BASE_URL
+    if BASE_URL and BASE_URL.startswith("'") and BASE_URL.endswith("'"):
+        BASE_URL = BASE_URL[1:-1]
+
+    # Ensure BASE_URL doesn't have a trailing slash
+    if BASE_URL and BASE_URL.endswith('/'):
+        BASE_URL = BASE_URL[:-1]
+
     # Detect environment - Render sets this environment variable
     RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
 

@@ -3,6 +3,7 @@ import json
 import requests
 import secrets
 import hashlib
+import urllib.parse
 from flask import current_app, url_for, session, redirect
 
 class GoogleAuth:
@@ -31,13 +32,20 @@ class GoogleAuth:
             base_url = current_app.config.get('BASE_URL', 'http://localhost:5000')
             redirect_uri = f"{base_url}/auth/google-callback"
 
+        # URL encode the redirect URI
+        encoded_redirect_uri = urllib.parse.quote(redirect_uri, safe='')
+
+        # Log the redirect URI for debugging
+        current_app.logger.info(f"OAuth redirect URI: {redirect_uri}")
+        current_app.logger.info(f"Encoded OAuth redirect URI: {encoded_redirect_uri}")
+
         # Generate state token for CSRF protection
         state = self._generate_state_token()
-        
+
         return (
             f"https://accounts.google.com/o/oauth2/auth"
             f"?client_id={self.google_client_id}"
-            f"&redirect_uri={redirect_uri}"
+            f"&redirect_uri={encoded_redirect_uri}"
             f"&response_type=code"
             f"&scope=email profile openid"
             f"&prompt=select_account"
@@ -50,7 +58,10 @@ class GoogleAuth:
         if not redirect_uri:
             base_url = current_app.config.get('BASE_URL', 'http://localhost:5000')
             redirect_uri = f"{base_url}/auth/google-callback"
-            
+
+        # Log the redirect URI for debugging
+        current_app.logger.info(f"Token exchange redirect URI: {redirect_uri}")
+
         token_url = "https://oauth2.googleapis.com/token"
         payload = {
             "client_id": self.google_client_id,
@@ -59,22 +70,29 @@ class GoogleAuth:
             "grant_type": "authorization_code",
             "redirect_uri": redirect_uri
         }
-        
+
+        # Log the payload for debugging (excluding client secret)
+        debug_payload = payload.copy()
+        debug_payload["client_secret"] = "REDACTED"
+        current_app.logger.info(f"Token exchange payload: {debug_payload}")
+
         response = requests.post(token_url, data=payload)
         if response.status_code != 200:
-            return {"error": response.json()}
-            
+            error_data = response.json()
+            current_app.logger.error(f"Token exchange error: {error_data}")
+            return {"error": error_data}
+
         return response.json()
 
     def get_user_info(self, access_token):
         """Get user information using the access token."""
         user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo"
         headers = {"Authorization": f"Bearer {access_token}"}
-        
+
         response = requests.get(user_info_url, headers=headers)
         if response.status_code != 200:
             return {"error": response.json()}
-            
+
         return response.json()
 
     def store_user_session(self, user_info, tokens=None):
@@ -85,7 +103,7 @@ class GoogleAuth:
             'display_name': user_info.get('name'),
             'photo_url': user_info.get('picture'),
         }
-        
+
         # Store tokens if provided
         if tokens:
             session['tokens'] = {
@@ -94,7 +112,7 @@ class GoogleAuth:
                 'id_token': tokens.get('id_token'),
                 'expires_in': tokens.get('expires_in')
             }
-            
+
         return session['user']
 
     def refresh_token(self, refresh_token):
@@ -106,7 +124,7 @@ class GoogleAuth:
             "refresh_token": refresh_token,
             "grant_type": "refresh_token"
         }
-        
+
         response = requests.post(token_url, data=payload)
         return response.json()
 
