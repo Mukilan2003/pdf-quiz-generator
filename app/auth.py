@@ -31,63 +31,81 @@ def google_callback():
     """Handle Google OAuth callback."""
     current_app.logger.info("Google callback received")
 
-    # Get the authorization code from the request
-    code = request.args.get('code')
-    state = request.args.get('state')
-    error = request.args.get('error')
+    try:
+        # Get the authorization code from the request
+        code = request.args.get('code')
+        state = request.args.get('state')
+        error = request.args.get('error')
 
-    # Log all request parameters for debugging (excluding the code for security)
-    debug_args = request.args.copy()
-    if 'code' in debug_args:
-        debug_args['code'] = 'REDACTED'
-    current_app.logger.info(f"Callback parameters: {debug_args}")
+        # Log all request parameters for debugging (excluding the code for security)
+        debug_args = request.args.copy()
+        if 'code' in debug_args:
+            debug_args['code'] = 'REDACTED'
+        current_app.logger.info(f"Callback parameters: {debug_args}")
 
-    # Check for error parameter
-    if error:
-        current_app.logger.error(f"Google returned an error: {error}")
-        flash(f"Authentication failed: {error}")
+        # Check for error parameter
+        if error:
+            current_app.logger.error(f"Google returned an error: {error}")
+            flash(f"Authentication failed: {error}")
+            return redirect(url_for('main.index'))
+
+        # Verify state parameter to prevent CSRF
+        stored_state = session.get('oauth_state')
+        current_app.logger.info(f"Session contents: {list(session.keys())}")
+
+        if not state:
+            current_app.logger.error("No state parameter received")
+            flash("Authentication failed: No state parameter received. Please try again.")
+            return redirect(url_for('main.index'))
+
+        if not stored_state:
+            current_app.logger.error("No stored state in session")
+            flash("Authentication failed: Session state not found. Please try again.")
+            return redirect(url_for('main.index'))
+
+        if state != stored_state:
+            current_app.logger.error(f"State mismatch. Got: {state}, Expected: {stored_state}")
+            flash("Authentication failed: State mismatch. Please try again.")
+            return redirect(url_for('main.index'))
+
+        # Clear the state from session
+        session.pop('oauth_state', None)
+
+        if not code:
+            current_app.logger.error("No authorization code received")
+            flash("Authentication failed. Please try again.")
+            return redirect(url_for('main.index'))
+
+        # Exchange code for tokens
+        current_app.logger.info("Exchanging code for tokens")
+        tokens = google_auth.exchange_code_for_token(code)
+
+        if 'error' in tokens:
+            error_details = tokens.get('error')
+            current_app.logger.error(f"Token exchange failed: {error_details}")
+            flash(f"Authentication failed: {error_details}")
+            return redirect(url_for('main.index'))
+
+        # Get user info using the access token
+        current_app.logger.info("Getting user info")
+        user_info = google_auth.get_user_info(tokens.get('access_token'))
+
+        if 'error' in user_info:
+            error_details = user_info.get('error')
+            current_app.logger.error(f"Failed to get user info: {error_details}")
+            flash(f"Failed to get user info: {error_details}")
+            return redirect(url_for('main.index'))
+
+        # Store user data in session
+        current_app.logger.info(f"Authentication successful for user: {user_info.get('email')}")
+        google_auth.store_user_session(user_info, tokens)
+
         return redirect(url_for('main.index'))
 
-    # Verify state parameter to prevent CSRF
-    stored_state = session.get('oauth_state')
-    if not state or not stored_state or state != stored_state:
-        current_app.logger.error(f"Invalid state parameter. Got: {state}, Expected: {stored_state}")
-        flash("Invalid state parameter. Please try again.")
+    except Exception as e:
+        current_app.logger.error(f"Unexpected error in Google callback: {str(e)}", exc_info=True)
+        flash(f"An unexpected error occurred during authentication. Please try again.")
         return redirect(url_for('main.index'))
-
-    # Clear the state from session
-    session.pop('oauth_state', None)
-
-    if not code:
-        current_app.logger.error("No authorization code received")
-        flash("Authentication failed. Please try again.")
-        return redirect(url_for('main.index'))
-
-    # Exchange code for tokens
-    current_app.logger.info("Exchanging code for tokens")
-    tokens = google_auth.exchange_code_for_token(code)
-
-    if 'error' in tokens:
-        error_details = tokens.get('error')
-        current_app.logger.error(f"Token exchange failed: {error_details}")
-        flash(f"Authentication failed: {error_details}")
-        return redirect(url_for('main.index'))
-
-    # Get user info using the access token
-    current_app.logger.info("Getting user info")
-    user_info = google_auth.get_user_info(tokens.get('access_token'))
-
-    if 'error' in user_info:
-        error_details = user_info.get('error')
-        current_app.logger.error(f"Failed to get user info: {error_details}")
-        flash(f"Failed to get user info: {error_details}")
-        return redirect(url_for('main.index'))
-
-    # Store user data in session
-    current_app.logger.info(f"Authentication successful for user: {user_info.get('email')}")
-    google_auth.store_user_session(user_info, tokens)
-
-    return redirect(url_for('main.index'))
 
 @auth.route('/logout')
 def logout():

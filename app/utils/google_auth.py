@@ -132,6 +132,18 @@ class GoogleAuth:
         """Generate a secure state token for OAuth."""
         # Generate a random token
         token = secrets.token_hex(16)
+
+        # Make sure the session is properly initialized
+        if 'oauth_state' in session:
+            current_app.logger.info(f"Replacing existing oauth_state in session")
+
         # Store in session for verification when the callback is received
         session['oauth_state'] = token
+
+        # Force the session to be saved immediately
+        session.modified = True
+
+        current_app.logger.info(f"Generated new state token: {token}")
+        current_app.logger.info(f"Session after state token generation: {list(session.keys())}")
+
         return token
