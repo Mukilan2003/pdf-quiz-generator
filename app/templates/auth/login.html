@@ -10,30 +10,16 @@
                 <h2 class="mb-0">Login</h2>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('auth.login_post') }}">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-
-                <div class="text-center mt-4">
-                    <p>Or login with:</p>
-                    <a href="{{ url_for('auth.google_login') }}" class="btn btn-outline-danger">
-                        <i class="fab fa-google"></i> Google
+                <div class="text-center mb-4">
+                    <p>Sign in to access the PDF Quiz Generator</p>
+                    <a href="{{ url_for('auth.google_login') }}" class="btn btn-danger btn-lg">
+                        <i class="fab fa-google"></i> Sign in with Google
                     </a>
                 </div>
 
                 <hr>
                 <div class="text-center">
-                    <p>Don't have an account? Sign up with Google above.</p>
+                    <p>This application uses Google authentication for secure access.</p>
                 </div>
             </div>
         </div>
@@ -45,7 +31,7 @@
 <script>
     $(document).ready(function() {
         // Add animation to the Google login button
-        $('.btn-outline-danger').hover(
+        $('.btn-danger').hover(
             function() { $(this).addClass('animate__animated animate__pulse'); },
             function() { $(this).removeClass('animate__animated animate__pulse'); }
         );
