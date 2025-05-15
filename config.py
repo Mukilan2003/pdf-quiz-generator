@@ -4,7 +4,7 @@ import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if it exists (only in development)
-if not os.environ.get('RENDER'):
+if not os.environ.get('VERCEL'):
     load_dotenv()
 
 class Config:
@@ -30,14 +30,14 @@ class Config:
     if BASE_URL and BASE_URL.endswith('/'):
         BASE_URL = BASE_URL[:-1]
 
-    # Detect environment - Render sets this environment variable
-    RENDER = os.environ.get('RENDER', 'false').lower() == 'true'
+    # Detect environment
+    VERCEL = os.environ.get('VERCEL', 'false').lower() == 'true'
 
     # Set upload folder based on environment
-    if RENDER:
-        # On Render, use a subdirectory in the temp directory
+    if VERCEL:
+        # On Vercel, use a subdirectory in the temp directory
         UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'pdf_quiz_uploads')
-        print(f"Running on Render. Upload folder: {UPLOAD_FOLDER}", file=sys.stderr)
+        print(f"Running on Vercel. Upload folder: {UPLOAD_FOLDER}", file=sys.stderr)
     else:
         # In development, use a local directory
         UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app/static/uploads')

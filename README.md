@@ -72,7 +72,7 @@ A web application that uses Google's Gemini Flash 2.0 API to extract text from P
      - Name: pdf-quiz-generator (or your preferred name)
      - Environment: Python
      - Build Command: `pip install -r requirements.txt`
-     - Start Command: `gunicorn run:app`
+     - Start Command: `gunicorn render_app:app`
 
 3. Add environment variables in the Render dashboard:
    - SECRET_KEY (generate a secure random string)
@@ -92,6 +92,44 @@ A web application that uses Google's Gemini Flash 2.0 API to extract text from P
 4. Edit your OAuth 2.0 Client ID
 5. Add your Render application URL to the Authorized JavaScript origins
 6. Add `https://your-render-app.onrender.com/auth/google-callback` to the Authorized redirect URIs
+7. Save the changes
+
+## Deployment to Vercel
+
+1. Create a Vercel account at https://vercel.com if you don't have one.
+
+2. Install the Vercel CLI (optional):
+   ```
+   npm install -g vercel
+   ```
+
+3. Create a new project in Vercel:
+   - Connect your GitHub repository
+   - Select the repository containing your PDF Quiz Generator application
+   - Configure the project:
+     - Framework Preset: Other
+     - Root Directory: ./
+     - Build Command: pip install -r requirements.txt
+     - Output Directory: (leave default)
+
+4. Add environment variables in the Vercel dashboard:
+   - SECRET_KEY (generate a secure random string)
+   - GEMINI_API_KEY (your Google Gemini API key)
+   - GOOGLE_CLIENT_ID (your Google OAuth client ID)
+   - GOOGLE_CLIENT_SECRET (your Google OAuth client secret)
+   - BASE_URL (your Vercel application URL, e.g., https://pdf-quiz-generator.vercel.app)
+   - VERCEL=true
+
+5. Deploy the application.
+
+### Google OAuth Configuration for Vercel
+
+1. Go to the Google Cloud Console: https://console.cloud.google.com/
+2. Select your project
+3. Navigate to APIs & Services > Credentials
+4. Edit your OAuth 2.0 Client ID
+5. Add your Vercel application URL to the Authorized JavaScript origins
+6. Add `https://your-vercel-app.vercel.app/auth/google-callback` to the Authorized redirect URIs
 7. Save the changes
 
 ## Project Structure
